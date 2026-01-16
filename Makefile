@@ -1,10 +1,10 @@
 CC      = gcc
 CFLAGS  = -std=c18 -Wall -Wextra -O2 -g 
-LDLIBS = /usr/lib/libraylib.a -lm -lpthread -ldl -lrt -lX11
+LDLIBS  = /usr/lib/libraylib.a -lm -lpthread -ldl -lrt -lX11
 
 TARGET = bmicalc
 
-.PHONY: all clean reformat run vrun
+.PHONY: all clean reformat run
 
 all: $(TARGET)
 
@@ -19,4 +19,3 @@ reformat:
 
 run:
 	./$(TARGET)
-
