@@ -15,7 +15,7 @@ clean:
 	rm -f $(TARGET)
 
 reformat:
-	clang-format --style=Chromium -i *.c
+	clang-format --style=Chromium -i *.c *.h
 
 run:
 	./$(TARGET)
