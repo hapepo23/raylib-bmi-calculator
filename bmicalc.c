@@ -30,6 +30,13 @@
   }
 #define FONT_SIZES \
   { 32, 32 }
+#define FONT_ADD_CP_RANGES_COUNT 3
+#define FONT_ADD_CP_RANGES                \
+  {                                       \
+    {0x00b2, 0x00b2}, {0x25b2, 0x25b2}, { \
+      0x25bc, 0x25bc                      \
+    }                                     \
+  }
 #define INPUT_CURSOR '_'
 
 #define MAX_WIDGETS 9
@@ -319,11 +326,13 @@ static void Startup(void) {
   // Fonts
   int fontsizes[FONT_COUNT] = FONT_SIZES;
   char* fontpaths[FONT_COUNT] = FONT_PATHS;
+  int fontaddcpranges[FONT_ADD_CP_RANGES_COUNT][2] = FONT_ADD_CP_RANGES;
   for (size_t i = 0; i < FONT_COUNT; i++) {
     font[i] = LoadFontEx(fontpaths[i], fontsizes[i], NULL, 0);
-    AddCodepointRange(&font[i], fontpaths[i], 0x00b2, 0x00b2);  // = ²
-    AddCodepointRange(&font[i], fontpaths[i], 0x25b2, 0x25b2);  // = ▲
-    AddCodepointRange(&font[i], fontpaths[i], 0x25bc, 0x25bc);  // = ▼
+    for (size_t j = 0; j < FONT_ADD_CP_RANGES_COUNT; j++) {
+      AddCodepointRange(&font[i], fontpaths[i], fontaddcpranges[j][0],
+                        fontaddcpranges[j][1]);
+    }
     SetTextureFilter(font[i].texture, TEXTURE_FILTER_BILINEAR);
   }
   SetTextLineSpacing(0);
@@ -613,7 +622,6 @@ static void process_keys(void) {
   char buf[5];
   while ((key = GetKeyPressed()) != 0) {
     if (KEY_BACKSPACE == key) {
-      // printf("BACKSPACE %s\n",widgets[typing_widget].text);
       set_input_cursor(false, widgets[typing_widget].text);
       remove_last_utf8_char(widgets[typing_widget].text);
       set_input_cursor(true, widgets[typing_widget].text);
