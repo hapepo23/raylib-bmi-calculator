@@ -1,6 +1,8 @@
 #ifndef MYRAYGUI_H
 #define MYRAYGUI_H
 
+/* MyRayGUI Version 2026-02-15 */
+
 #include <inttypes.h>
 #include <raylib.h>
 #include <stdio.h>
@@ -61,7 +63,7 @@ typedef enum {
 
 typedef void (*callback_init_func)(int widget_index);
 typedef void (*callback_print_func)(int widget_index);
-typedef void (*callback_event_func)(int widget_index);
+typedef void (*callback_click_func)(int widget_index);
 typedef void (*callback_check_func)(int widget_index);
 
 typedef struct WidgetData {
@@ -82,9 +84,9 @@ typedef struct WidgetData {
   char* longtext;         // TEXTSCROLLAREA (via init / init_longtext)
   float yscrollpos;       // TEXTSCROLLAREA
   float ytextmax;         // TEXTSCROLLAREA
-  callback_print_func init_event_fn;   // TEXTSCROLLAREA
+  callback_init_func init_event_fn;    // TEXTSCROLLAREA
   callback_print_func print_event_fn;  // LABEL, BUTTON
-  callback_event_func click_event_fn;  // LABEL, BUTTON, IMAGE, CROSSBUTTON
+  callback_click_func click_event_fn;  // LABEL, BUTTON, IMAGE, CROSSBUTTON
   callback_check_func check_event_fn;  // INPUT
 } WidgetData;
 
@@ -306,7 +308,7 @@ static void Shutdown(void) {
         break;
     }
   }
-  for (size_t i = 0; i < FONT_COUNT; i++)
+  for (int i = 0; i < FONT_COUNT; i++)
     UnloadFont(font[i]);
   CloseWindow();
 }
