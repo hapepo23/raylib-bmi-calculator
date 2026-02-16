@@ -57,6 +57,7 @@
 
 /* ----------------------------------------------------------------*/
 
+int main(void);
 static void click(int id);
 static void print(int id);
 static void check(int id);
@@ -171,6 +172,22 @@ static char BMI[25] = "";
 
 /* ----------------------------------------------------------------*/
 
+// Main
+
+int main(void) {
+  Startup();
+  while (!WindowShouldClose() && !exitstate) {
+    Update();
+    BeginDrawing();
+    Render();
+    EndDrawing();
+  }
+  Shutdown();
+  return 0;
+}
+
+/* ----------------------------------------------------------------*/
+
 // Callback functions
 
 static void click(int id) {
@@ -236,8 +253,11 @@ static void check(int id) {
 // Utilities
 
 static void calcBMI(void) {
-  sprintf(BMI, "BMI = %.1f kg/m²",
-          (double)weight * 1e4 / ((double)height * (double)height));
+  if (typing_widget == 2 || typing_widget == 3)
+    sprintf(BMI, "BMI = ...");
+  else
+    sprintf(BMI, "BMI = %.1f kg/m²",
+            (double)weight * 1e4 / ((double)height * (double)height));
   strcpy(widgets[8].text, BMI);
 }
 

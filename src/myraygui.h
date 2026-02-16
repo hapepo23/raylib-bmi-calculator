@@ -40,7 +40,6 @@ static void process_keys(void);
 static void stoptyping(void);
 static void init_longtext(int id, char* text);
 static char* wrap_text_words(const char* text, int width);
-int main(void);
 
 /* ----------------------------------------------------------------*/
 
@@ -560,20 +559,6 @@ static char* wrap_text_words(const char* text, int width) {
   }
   out[j] = '\0';
   return realloc(out, j + 1);
-}
-
-/* ----------------------------------------------------------------*/
-
-int main(void) {
-  Startup();
-  while (!WindowShouldClose() && !exitstate) {
-    Update();
-    BeginDrawing();
-    Render();
-    EndDrawing();
-  }
-  Shutdown();
-  return 0;
 }
 
 #endif  // defined(MYRAYGUI_IMPLEMENTATION)
