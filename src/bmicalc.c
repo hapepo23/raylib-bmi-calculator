@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* RayLib BMI Calculator */
+/* RayLib BMI Calculator, Version 2025-02-17 */
 
 /* ----------------------------------------------------------------*/
 
@@ -26,11 +26,8 @@
 #define TARGET_FPS 30
 
 #define FONT_COUNT 2
-#define FONT_PATHS                                                     \
-  {                                                                    \
-    "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", \
-        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf" \
-  }
+#define FONT_PATHS \
+  { "LiberationSans-Regular.ttf", "LiberationSans-Bold.ttf" }
 #define FONT_SIZES \
   { 32, 32 }
 #define FONT_ADD_CP_RANGES_COUNT 3

@@ -1,7 +1,7 @@
 #ifndef MYRAYGUI_H
 #define MYRAYGUI_H
 
-/* MyRayGUI Version 2026-02-15 */
+/* MyRayGUI Version 2026-02-17 */
 
 #include <inttypes.h>
 #include <raylib.h>
@@ -132,13 +132,13 @@ static void Startup(void) {
         widgets[i].size =
             MeasureTextEx(font[widgets[i].fontindex], widgets[i].text,
                           font[widgets[i].fontindex].baseSize,
-                          font[widgets[i].fontindex].baseSize / 24);
+                          font[widgets[i].fontindex].baseSize / 32.f);
         break;
       case CROSSBUTTON:
         widgets[i].size =
             MeasureTextEx(font[widgets[i].fontindex], " x ",
                           font[widgets[i].fontindex].baseSize,
-                          font[widgets[i].fontindex].baseSize / 24);
+                          font[widgets[i].fontindex].baseSize / 32.f);
         widgets[i].size =
             (Vector2){widgets[i].size.x + 1, widgets[i].size.y + 1};
         break;
@@ -153,7 +153,7 @@ static void Startup(void) {
         widgets[i].size =
             MeasureTextEx(font[widgets[i].fontindex], "M",
                           font[widgets[i].fontindex].baseSize,
-                          font[widgets[i].fontindex].baseSize / 24);
+                          font[widgets[i].fontindex].baseSize / 32.f);
         widgets[i].size =
             (Vector2){widgets[i].size.x * widgets[i].textmaxcount + 5,
                       widgets[i].size.y + 5};
@@ -195,21 +195,23 @@ static void Update(void) {
         }
         break;
       case TEXTSCROLLAREA:
-        if (CheckCollisionPointRec(
-                mousepos,
-                (Rectangle){widgets[i].position.x, widgets[i].position.y,
-                            widgets[i].size.x, widgets[i].size.y})) {
-          if (mouseleftreleased)
-            widgets[i].yscrollpos -= widgets[i].size.y;
-          if (mouserightreleased)
-            widgets[i].yscrollpos += widgets[i].size.y;
-          widgets[i].yscrollpos += GetMouseWheelMove() * 20;
-          if (widgets[i].yscrollpos > 0.f)
-            widgets[i].yscrollpos = 0.f;
-          if (widgets[i].yscrollpos <
-              -widgets[i].ytextmax + widgets[i].size.y * .95)
-            widgets[i].yscrollpos =
-                -widgets[i].ytextmax + widgets[i].size.y * .95;
+        if (widgets[i].ytextmax >= widgets[i].size.y) {
+          if (CheckCollisionPointRec(
+                  mousepos,
+                  (Rectangle){widgets[i].position.x, widgets[i].position.y,
+                              widgets[i].size.x, widgets[i].size.y})) {
+            if (mouseleftreleased)
+              widgets[i].yscrollpos -= widgets[i].size.y;
+            if (mouserightreleased)
+              widgets[i].yscrollpos += widgets[i].size.y;
+            widgets[i].yscrollpos += GetMouseWheelMove() * 20;
+            if (widgets[i].yscrollpos > 0.f)
+              widgets[i].yscrollpos = 0.f;
+            if (widgets[i].yscrollpos <
+                -widgets[i].ytextmax + widgets[i].size.y * .95)
+              widgets[i].yscrollpos =
+                  -widgets[i].ytextmax + widgets[i].size.y * .95;
+          }
         }
         break;
       case INPUT:
@@ -249,10 +251,11 @@ static void Render(void) {
                    (Vector2){widgets[i].position.x + 5,
                              widgets[i].position.y + 5 + widgets[i].yscrollpos},
                    font[widgets[i].fontindex].baseSize,
-                   font[widgets[i].fontindex].baseSize / 24,
+                   font[widgets[i].fontindex].baseSize / 32.f,
                    widgets[i].textcolor);
         EndScissorMode();
-        paintScrollbar(i);
+        if (widgets[i].ytextmax >= widgets[i].size.y)
+          paintScrollbar(i);
         break;
       case IMAGE:
         DrawTexture(widgets[i].texture, widgets[i].position.x,
@@ -277,7 +280,7 @@ static void Render(void) {
                        widgets[i].backgroundcolor);
         DrawTextEx(font[widgets[i].fontindex], widgets[i].text,
                    widgets[i].position, font[widgets[i].fontindex].baseSize,
-                   font[widgets[i].fontindex].baseSize / 24,
+                   font[widgets[i].fontindex].baseSize / 32.f,
                    widgets[i].textcolor);
         break;
       case INPUT:
@@ -287,7 +290,7 @@ static void Render(void) {
             font[widgets[i].fontindex], widgets[i].text,
             (Vector2){widgets[i].position.x + 3, widgets[i].position.y + 3},
             font[widgets[i].fontindex].baseSize,
-            font[widgets[i].fontindex].baseSize / 24, widgets[i].textcolor);
+            font[widgets[i].fontindex].baseSize / 32.f, widgets[i].textcolor);
       default:
         break;
     }
@@ -380,14 +383,14 @@ static void paintTextButton(const char* text,
                             bool hover) {
   float delta = 0.0f;
   Vector2 textdim =
-      MeasureTextEx(font, text, font.baseSize, font.baseSize / 24);
+      MeasureTextEx(font, text, font.baseSize, font.baseSize / 32.f);
   if (hover && mousepressed)
     delta = -2.0f;
   paintRectangle(pos, dim, BLANK, hover, hover && mousepressed, false);
   DrawTextEx(font, text,
              (Vector2){pos.x + dim.x / 2 - textdim.x / 2 + delta,
                        pos.y + dim.y / 2 - textdim.y / 2 + delta},
-             font.baseSize, font.baseSize / 24, textcolor);
+             font.baseSize, font.baseSize / 32.f, textcolor);
 }
 
 static void paintScrollbar(int id) {
@@ -396,6 +399,10 @@ static void paintScrollbar(int id) {
                                          widgets[id].yscrollpos /
                                          (-widgets[id].ytextmax);
   float h = widgets[id].size.y * widgets[id].size.y / widgets[id].ytextmax;
+  if (h > widgets[id].size.y)
+    h = widgets[id].size.y;
+  if (y + h > widgets[id].size.y + widgets[id].position.y)
+    h = widgets[id].size.y + widgets[id].position.y - y;
   DrawRectangleV((Vector2){x, y}, (Vector2){5, h}, DARKGRAY);
 }
 
@@ -500,7 +507,7 @@ static void init_longtext(int id, char* text) {
   int width = widgets[id].size.x;
   Vector2 charsize = MeasureTextEx(font[widgets[id].fontindex], "b",
                                    font[widgets[id].fontindex].baseSize,
-                                   font[widgets[id].fontindex].baseSize / 24);
+                                   font[widgets[id].fontindex].baseSize / 32.f);
   int chwidth = charsize.x;
   if (widgets[id].longtext != NULL) {
     free(widgets[id].longtext);
@@ -509,7 +516,7 @@ static void init_longtext(int id, char* text) {
   Vector2 size =
       MeasureTextEx(font[widgets[id].fontindex], widgets[id].longtext,
                     font[widgets[id].fontindex].baseSize,
-                    font[widgets[id].fontindex].baseSize / 24);
+                    font[widgets[id].fontindex].baseSize / 32.f);
   widgets[id].ytextmax = size.y;
 }
 
