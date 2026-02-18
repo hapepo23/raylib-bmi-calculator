@@ -5,7 +5,6 @@
 
 #include <inttypes.h>
 #include <raylib.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -50,6 +49,7 @@ static Vector2 mousepos;
 static bool mousepressed;
 static bool exitstate = false;
 static int typing_widget = -1;
+static int mouse_cursor = MOUSE_CURSOR_DEFAULT;
 
 typedef enum {
   NONE = 0,
@@ -60,6 +60,7 @@ typedef enum {
   PANEL,
   INPUT,
   TEXTSCROLLAREA,
+  CLICKAREA,
 } WidgetType;
 
 typedef void (*callback_init_func)(int widget_index);
@@ -76,7 +77,7 @@ typedef struct WidgetData {
   Vector2 position;       // all
   Color backgroundcolor;  // LABEL, PANEL, BUTTON
   Color textcolor;        // LABEL, BUTTON, CROSSBUTTON, INPUT
-  Vector2 size;           // BUTTON, PANEL
+  Vector2 size;           // BUTTON, PANEL, TEXTSCROLLAREA, CLICKAREA
   int fontindex;          // LABEL, BUTTON, CROSSBUTTON, TEXT
   bool sunken;            // PANEL
   bool mouse_on_widget;   // all
@@ -87,7 +88,8 @@ typedef struct WidgetData {
   float ytextmax;         // TEXTSCROLLAREA
   callback_init_func init_event_fn;    // TEXTSCROLLAREA
   callback_print_func print_event_fn;  // LABEL, BUTTON
-  callback_click_func click_event_fn;  // LABEL, BUTTON, IMAGE, CROSSBUTTON
+  callback_click_func
+      click_event_fn;  // LABEL, BUTTON, IMAGE, CROSSBUTTON, CLICKAREA
   callback_check_func check_event_fn;  // INPUT
 } WidgetData;
 
@@ -178,6 +180,7 @@ static void Update(void) {
     process_keys();
   for (int i = 0; i < MAX_WIDGETS; i++)
     widgets[i].mouse_on_widget = false;
+  mouse_cursor = MOUSE_CURSOR_DEFAULT;
   bool notfound = true;
   for (int i = 0; i < MAX_WIDGETS && notfound; i++) {
     switch (widgets[i].type) {
@@ -185,10 +188,13 @@ static void Update(void) {
       case CROSSBUTTON:
       case IMAGE:
       case BUTTON:
+      case CLICKAREA:
         if (CheckCollisionPointRec(
                 mousepos,
                 (Rectangle){widgets[i].position.x, widgets[i].position.y,
                             widgets[i].size.x, widgets[i].size.y})) {
+          if (widgets[i].click_event_fn)
+            mouse_cursor = MOUSE_CURSOR_POINTING_HAND;
           if (mouseleftreleased && widgets[i].click_event_fn)
             widgets[i].click_event_fn(i);
           widgets[i].mouse_on_widget = true;
@@ -234,6 +240,7 @@ static void Update(void) {
 
 static void Render(void) {
   ClearBackground(APP_BACKGROUND_COLOR);
+  SetMouseCursor(mouse_cursor);
   // DrawFPS(1, 1);
   for (int i = 0; i < MAX_WIDGETS; i++) {
     switch (widgets[i].type) {
