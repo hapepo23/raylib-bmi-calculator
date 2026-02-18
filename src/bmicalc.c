@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* RayLib BMI Calculator, Version 2025-02-17 */
+/* RayLib BMI Calculator, Version 2025-02-18 */
 
 /* ----------------------------------------------------------------*/
 
@@ -30,6 +30,8 @@
   { "LiberationSans-Regular.ttf", "LiberationSans-Bold.ttf" }
 #define FONT_SIZES \
   { 32, 32 }
+#define FONT_SPACINGS \
+  { 0.f, 0.f }
 #define FONT_ADD_CP_RANGES_COUNT 3
 #define FONT_ADD_CP_RANGES                \
   {                                       \
@@ -37,6 +39,7 @@
       0x25bc, 0x25bc                      \
     }                                     \
   }
+#define TEXT_LINE_SPACING 0
 #define INPUT_CURSOR '_'
 
 #define MAX_WIDGETS 9

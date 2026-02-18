@@ -1,7 +1,7 @@
 #ifndef MYRAYGUI_H
 #define MYRAYGUI_H
 
-/* MyRayGUI Version 2026-02-17 */
+/* MyRayGUI Version 2026-02-18 */
 
 #include <inttypes.h>
 #include <raylib.h>
@@ -30,7 +30,8 @@ static void paintTextButton(const char* text,
                             Vector2 dim,
                             Font font,
                             Color textcolor,
-                            bool hover);
+                            bool hover,
+                            float spacing);
 static void paintScrollbar(int id);
 static int u32_to_utf8(const uint32_t cp, char out[5]);
 static void remove_last_utf8_char(char* str);
@@ -44,6 +45,7 @@ static char* wrap_text_words(const char* text, int width);
 /* ----------------------------------------------------------------*/
 
 static Font font[FONT_COUNT];
+static float fontspacings[FONT_COUNT];
 static Vector2 mousepos;
 static bool mousepressed;
 static bool exitstate = false;
@@ -109,6 +111,7 @@ static void Startup(void) {
                     monitorHeight / 2 - SCREEN_HEIGHT / 2);
   // Fonts
   int fontsizes[FONT_COUNT] = FONT_SIZES;
+  float fontspacings[FONT_COUNT] = FONT_SPACINGS;
   char* fontpaths[FONT_COUNT] = FONT_PATHS;
   int fontaddcpranges[FONT_ADD_CP_RANGES_COUNT][2] = FONT_ADD_CP_RANGES;
   for (int i = 0; i < FONT_COUNT; i++) {
@@ -119,7 +122,7 @@ static void Startup(void) {
     }
     SetTextureFilter(font[i].texture, TEXTURE_FILTER_BILINEAR);
   }
-  SetTextLineSpacing(0);
+  SetTextLineSpacing(TEXT_LINE_SPACING);
   // Widgets
   for (int i = 0; i < MAX_WIDGETS; i++) {
     switch (widgets[i].type) {
@@ -132,13 +135,12 @@ static void Startup(void) {
         widgets[i].size =
             MeasureTextEx(font[widgets[i].fontindex], widgets[i].text,
                           font[widgets[i].fontindex].baseSize,
-                          font[widgets[i].fontindex].baseSize / 32.f);
+                          fontspacings[widgets[i].fontindex]);
         break;
       case CROSSBUTTON:
-        widgets[i].size =
-            MeasureTextEx(font[widgets[i].fontindex], " x ",
-                          font[widgets[i].fontindex].baseSize,
-                          font[widgets[i].fontindex].baseSize / 32.f);
+        widgets[i].size = MeasureTextEx(font[widgets[i].fontindex], " x ",
+                                        font[widgets[i].fontindex].baseSize,
+                                        fontspacings[widgets[i].fontindex]);
         widgets[i].size =
             (Vector2){widgets[i].size.x + 1, widgets[i].size.y + 1};
         break;
@@ -150,10 +152,9 @@ static void Startup(void) {
         }
         break;
       case INPUT:
-        widgets[i].size =
-            MeasureTextEx(font[widgets[i].fontindex], "M",
-                          font[widgets[i].fontindex].baseSize,
-                          font[widgets[i].fontindex].baseSize / 32.f);
+        widgets[i].size = MeasureTextEx(font[widgets[i].fontindex], "M",
+                                        font[widgets[i].fontindex].baseSize,
+                                        fontspacings[widgets[i].fontindex]);
         widgets[i].size =
             (Vector2){widgets[i].size.x * widgets[i].textmaxcount + 5,
                       widgets[i].size.y + 5};
@@ -251,8 +252,7 @@ static void Render(void) {
                    (Vector2){widgets[i].position.x + 5,
                              widgets[i].position.y + 5 + widgets[i].yscrollpos},
                    font[widgets[i].fontindex].baseSize,
-                   font[widgets[i].fontindex].baseSize / 32.f,
-                   widgets[i].textcolor);
+                   fontspacings[widgets[i].fontindex], widgets[i].textcolor);
         EndScissorMode();
         if (widgets[i].ytextmax >= widgets[i].size.y)
           paintScrollbar(i);
@@ -266,12 +266,14 @@ static void Render(void) {
           widgets[i].print_event_fn(i);
         paintTextButton(widgets[i].text, widgets[i].position, widgets[i].size,
                         font[widgets[i].fontindex], widgets[i].textcolor,
-                        widgets[i].mouse_on_widget);
+                        widgets[i].mouse_on_widget,
+                        fontspacings[widgets[i].fontindex]);
         break;
       case CROSSBUTTON:
         paintTextButton(" x ", widgets[i].position, widgets[i].size,
                         font[widgets[i].fontindex], widgets[i].textcolor,
-                        widgets[i].mouse_on_widget);
+                        widgets[i].mouse_on_widget,
+                        fontspacings[widgets[i].fontindex]);
         break;
       case LABEL:
         if (widgets[i].print_event_fn)
@@ -280,8 +282,7 @@ static void Render(void) {
                        widgets[i].backgroundcolor);
         DrawTextEx(font[widgets[i].fontindex], widgets[i].text,
                    widgets[i].position, font[widgets[i].fontindex].baseSize,
-                   font[widgets[i].fontindex].baseSize / 32.f,
-                   widgets[i].textcolor);
+                   fontspacings[widgets[i].fontindex], widgets[i].textcolor);
         break;
       case INPUT:
         paintRectangle(widgets[i].position, widgets[i].size, BLANK, false, true,
@@ -290,7 +291,7 @@ static void Render(void) {
             font[widgets[i].fontindex], widgets[i].text,
             (Vector2){widgets[i].position.x + 3, widgets[i].position.y + 3},
             font[widgets[i].fontindex].baseSize,
-            font[widgets[i].fontindex].baseSize / 32.f, widgets[i].textcolor);
+            fontspacings[widgets[i].fontindex], widgets[i].textcolor);
       default:
         break;
     }
@@ -380,17 +381,17 @@ static void paintTextButton(const char* text,
                             Vector2 dim,
                             Font font,
                             Color textcolor,
-                            bool hover) {
+                            bool hover,
+                            float spacing) {
   float delta = 0.0f;
-  Vector2 textdim =
-      MeasureTextEx(font, text, font.baseSize, font.baseSize / 32.f);
+  Vector2 textdim = MeasureTextEx(font, text, font.baseSize, spacing);
   if (hover && mousepressed)
     delta = -2.0f;
   paintRectangle(pos, dim, BLANK, hover, hover && mousepressed, false);
   DrawTextEx(font, text,
              (Vector2){pos.x + dim.x / 2 - textdim.x / 2 + delta,
                        pos.y + dim.y / 2 - textdim.y / 2 + delta},
-             font.baseSize, font.baseSize / 32.f, textcolor);
+             font.baseSize, spacing, textcolor);
 }
 
 static void paintScrollbar(int id) {
@@ -507,7 +508,7 @@ static void init_longtext(int id, char* text) {
   int width = widgets[id].size.x;
   Vector2 charsize = MeasureTextEx(font[widgets[id].fontindex], "b",
                                    font[widgets[id].fontindex].baseSize,
-                                   font[widgets[id].fontindex].baseSize / 32.f);
+                                   fontspacings[widgets[id].fontindex]);
   int chwidth = charsize.x;
   if (widgets[id].longtext != NULL) {
     free(widgets[id].longtext);
@@ -516,7 +517,7 @@ static void init_longtext(int id, char* text) {
   Vector2 size =
       MeasureTextEx(font[widgets[id].fontindex], widgets[id].longtext,
                     font[widgets[id].fontindex].baseSize,
-                    font[widgets[id].fontindex].baseSize / 32.f);
+                    fontspacings[widgets[id].fontindex]);
   widgets[id].ytextmax = size.y;
 }
 
