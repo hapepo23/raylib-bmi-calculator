@@ -1,7 +1,7 @@
 #ifndef MYRAYGUI_H
 #define MYRAYGUI_H
 
-/* MyRayGUI Version 2026-02-20 16:02 */
+/* MyRayGUI Version 2026-02-18 */
 
 #include <inttypes.h>
 #include <raylib.h>
@@ -80,12 +80,7 @@ typedef struct WidgetData {
   Vector2 size;           // BUTTON, PANEL, TEXTSCROLLAREA, CLICKAREA
   int fontindex;          // LABEL, BUTTON, CROSSBUTTON, TEXT
   bool sunken;            // PANEL
-  bool mouse_on_widget;   // LABEL, CROSSBUTTON, IMAGE, BUTTON, CLICKAREA with
-                          // click_event_fn
-  int keycode1;           // LABEL, CROSSBUTTON, IMAGE, BUTTON, CLICKAREA with
-                          // click_event_fn
-  int keycode2;           // LABEL, CROSSBUTTON, IMAGE, BUTTON, CLICKAREA with
-                          // click_event_fn
+  bool mouse_on_widget;   // all
   bool typing;            // INPUT
   char allowed[256];      // INPUT
   char* longtext;         // TEXTSCROLLAREA (via init / init_longtext)
@@ -179,25 +174,12 @@ static void Update(void) {
   bool mouseleftreleased = IsMouseButtonReleased(MOUSE_BUTTON_LEFT);
   bool mouserightreleased = IsMouseButtonReleased(MOUSE_BUTTON_RIGHT);
   mousepressed = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
-  int keycodepressed = 0;
   if (mouseleftreleased)
     stoptyping();
   if (typing_widget >= 0)
     process_keys();
-  else
-    keycodepressed = GetKeyPressed();
-  for (int i = 0; i < MAX_WIDGETS; i++) {
+  for (int i = 0; i < MAX_WIDGETS; i++)
     widgets[i].mouse_on_widget = false;
-    if (widgets[i].click_event_fn && typing_widget < 0) {
-      if (keycodepressed > 0) {
-        if (keycodepressed == widgets[i].keycode1) {
-          widgets[i].click_event_fn(i);
-        } else if (keycodepressed == widgets[i].keycode2) {
-          widgets[i].click_event_fn(i);
-        }
-      }
-    }
-  }
   mouse_cursor = MOUSE_CURSOR_DEFAULT;
   bool notfound = true;
   for (int i = 0; i < MAX_WIDGETS && notfound; i++) {
@@ -207,18 +189,16 @@ static void Update(void) {
       case IMAGE:
       case BUTTON:
       case CLICKAREA:
-        if (widgets[i].click_event_fn) {
-          if (notfound &&
-              CheckCollisionPointRec(
-                  mousepos,
-                  (Rectangle){widgets[i].position.x, widgets[i].position.y,
-                              widgets[i].size.x, widgets[i].size.y})) {
+        if (CheckCollisionPointRec(
+                mousepos,
+                (Rectangle){widgets[i].position.x, widgets[i].position.y,
+                            widgets[i].size.x, widgets[i].size.y})) {
+          if (widgets[i].click_event_fn)
             mouse_cursor = MOUSE_CURSOR_POINTING_HAND;
-            if (mouseleftreleased)
-              widgets[i].click_event_fn(i);
-            widgets[i].mouse_on_widget = true;
-            notfound = false;
-          }
+          if (mouseleftreleased && widgets[i].click_event_fn)
+            widgets[i].click_event_fn(i);
+          widgets[i].mouse_on_widget = true;
+          notfound = false;
         }
         break;
       case TEXTSCROLLAREA:
@@ -238,7 +218,6 @@ static void Update(void) {
                 -widgets[i].ytextmax + widgets[i].size.y * .95)
               widgets[i].yscrollpos =
                   -widgets[i].ytextmax + widgets[i].size.y * .95;
-            notfound = false;
           }
         }
         break;
@@ -252,7 +231,6 @@ static void Update(void) {
             widgets[i].typing = true;
             set_input_cursor(true, widgets[i].text);
           }
-          notfound = false;
         }
       default:
         break;
@@ -505,9 +483,6 @@ static void process_keys(void) {
       set_input_cursor(false, widgets[typing_widget].text);
       remove_last_utf8_char(widgets[typing_widget].text);
       set_input_cursor(true, widgets[typing_widget].text);
-    } else if (KEY_ENTER == key) {
-      stoptyping();
-      return;
     }
   }
   while ((key = GetCharPressed()) != 0) {
