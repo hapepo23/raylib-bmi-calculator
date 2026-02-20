@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* RayLib BMI Calculator, Version 2025-02-18 */
+/* RayLib BMI Calculator, Version: 2025-02-18 */
 
 /* ----------------------------------------------------------------*/
 
